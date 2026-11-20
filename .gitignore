@@ -33,3 +33,4 @@ dist/
 .coverage
 coverage/
 .vercel/
+vendor/native/

@@ -1,5 +1,6 @@
 """Vercel ASGI entrypoint with an explicit project path and startup diagnostics."""
 from importlib import import_module
+import ctypes
 import json
 from pathlib import Path
 import sys
@@ -12,12 +13,22 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 _backend = None
+_native_handles = []
+
+
+def load_native_dependencies():
+    if sys.platform.startswith("linux") and not _native_handles:
+        library = Path(PROJECT_ROOT) / "vendor/native/libexpat.so.1"
+        if library.is_file():
+            # Load by absolute path before rasterio/GDAL asks for its SONAME.
+            _native_handles.append(ctypes.CDLL(str(library), mode=ctypes.RTLD_GLOBAL))
 
 
 async def app(scope, receive, send):
     global _backend
     try:
         if _backend is None:
+            load_native_dependencies()
             _backend = import_module("backend.main").app
     except Exception as error:
         traceback.print_exc()  # Full traceback goes to Vercel runtime logs.
