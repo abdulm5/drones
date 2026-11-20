@@ -1,5 +1,6 @@
 import hashlib
 from io import BytesIO
+import json
 from pathlib import Path
 import zipfile
 
@@ -40,7 +41,8 @@ def test_checksum_and_zip_traversal_are_rejected(tmp_path):
     assert not (tmp_path/'outside.txt').exists()
 
 
-def test_missing_deployment_data_fails_with_setup_instructions(tmp_path):
+def test_missing_deployment_data_fails_with_setup_instructions(tmp_path, monkeypatch):
+    monkeypatch.setattr('scripts.prepare_vercel_data.MANIFEST', tmp_path/'missing-manifest.json')
     with pytest.raises(ValueError, match='AGRIFORGE_DATA_URL'):
         prepare(tmp_path/'missing', environ={})
 
@@ -48,3 +50,19 @@ def test_missing_deployment_data_fails_with_setup_instructions(tmp_path):
 def test_fixture_download_requires_https(tmp_path):
     with pytest.raises(ValueError, match='HTTPS'):
         prepare(tmp_path/'missing', environ={'AGRIFORGE_DATA_URL':'http://example.invalid/fixture.zip'})
+
+
+def test_clean_git_build_uses_pinned_release_without_env_vars(tmp_path, monkeypatch):
+    source, archive = tmp_path/'source', tmp_path/'bundle.zip'
+    fake_fixtures(source)
+    checksum = package(source, archive)
+    url = 'https://example.invalid/fixtures-v1.zip'
+    manifest = tmp_path/'deployment-fixtures.json'
+    manifest.write_text(json.dumps({'url': url, 'sha256': checksum}))
+    monkeypatch.setattr('scripts.prepare_vercel_data.MANIFEST', manifest)
+    class Download(BytesIO):
+        def geturl(self):
+            return url
+    monkeypatch.setattr('scripts.prepare_vercel_data.urlopen', lambda requested, timeout:
+        Download(archive.read_bytes()) if requested == url else None)
+    assert prepare(tmp_path/'restored', environ={}) == 11

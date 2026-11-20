@@ -1,6 +1,7 @@
 """Materialize ignored fixture data before Vercel packages the Python function."""
 import hashlib
 from io import BytesIO
+import json
 import os
 from pathlib import Path
 import re
@@ -18,6 +19,7 @@ except ImportError:
 
 MAX_ARCHIVE_BYTES = 8_000_000
 MAX_EXPANDED_BYTES = 16_000_000
+MANIFEST = ROOT / "scripts/deployment-fixtures.json"
 
 
 def install_archive(content, destination, checksum):
@@ -52,6 +54,10 @@ def prepare(destination=None, environ=None):
     environ = os.environ if environ is None else environ
     destination = Path(destination or environ.get("AGRIFORGE_DATA") or ROOT / "data/five_points")
     url = environ.get("AGRIFORGE_DATA_URL")
+    checksum = environ.get("AGRIFORGE_DATA_SHA256", "")
+    if not url and missing_files(destination) and MANIFEST.is_file():
+        manifest = json.loads(MANIFEST.read_text())
+        url, checksum = manifest["url"], manifest["sha256"]
     if url:
         if urlparse(url).scheme != "https":
             raise ValueError("AGRIFORGE_DATA_URL must use HTTPS")
@@ -62,7 +68,7 @@ def prepare(destination=None, environ=None):
                 content = response.read(MAX_ARCHIVE_BYTES + 1)
         except OSError:
             raise ValueError("Fixture download failed. Check AGRIFORGE_DATA_URL and host access; see docs/vercel.md.") from None
-        install_archive(content, destination, environ.get("AGRIFORGE_DATA_SHA256", ""))
+        install_archive(content, destination, checksum)
     missing = missing_files(destination)
     if missing:
         raise ValueError("Deployment fixtures are missing. Set AGRIFORGE_DATA_URL and AGRIFORGE_DATA_SHA256 in Vercel, "
