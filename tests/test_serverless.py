@@ -112,6 +112,18 @@ def test_entire_mission_flow_survives_cold_starts(observation, monkeypatch, tmp_
     assert client.post('/api/gate', json=session | {"mission_id": "another-mission"}).status_code == 403
 
 
-def test_python_entrypoint_exports_the_same_app():
+def test_python_entrypoint_serves_the_backend():
     from api.index import app
-    assert app is main.app
+    assert TestClient(app).get('/api/health').json()['ok']
+
+
+def test_python_entrypoint_explains_startup_failure(monkeypatch):
+    import api.index as entrypoint
+    monkeypatch.setattr(entrypoint, '_backend', None)
+    def missing_dependency(name):
+        raise ModuleNotFoundError("test missing dependency")
+    monkeypatch.setattr(entrypoint, 'import_module', missing_dependency)
+    response = TestClient(entrypoint.app).get('/api/health')
+    assert response.status_code == 503
+    assert response.json()['code'] == 'API_STARTUP_FAILED'
+    assert 'test missing dependency' in response.json()['detail']
