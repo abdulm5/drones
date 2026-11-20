@@ -1,5 +1,7 @@
 # AgriForce
 
+The public homepage currently plays the supplied demo recording. Run `npm start` for the video page. The original console is retained at `/console.html`; `npm run console:dev` starts its local Python service while the hosted API repair continues. Vercel currently serves a static build and does not require Python, fixture downloads, or signing-key configuration for video playback.
+
 AGRIFORGE prototype, themed with the supplied AgriForce brand kit: evergreen/frost, Geist typography, and the sprout mark. [Vercel deployment setup](docs/vercel.md).
 
 A mission-control console for UC West Side Research and Extension Center, Five Points, California. Real satellite observations guide **simulated** drone inspections, followed by an evidence-only consultant and independent human/policy gates.

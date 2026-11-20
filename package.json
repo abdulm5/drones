@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node scripts/start.mjs",
+    "start": "vite --host 127.0.0.1",
+    "console:dev": "node scripts/start.mjs",
     "api": ".venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000",
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",

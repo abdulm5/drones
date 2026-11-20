@@ -113,12 +113,12 @@ def test_entire_mission_flow_survives_cold_starts(observation, monkeypatch, tmp_
 
 
 def test_python_entrypoint_serves_the_backend():
-    from api.index import app
+    from deployment.observation_entry import app
     assert TestClient(app).get('/api/health').json()['ok']
 
 
 def test_python_entrypoint_explains_startup_failure(monkeypatch):
-    import api.index as entrypoint
+    import deployment.observation_entry as entrypoint
     monkeypatch.setattr(entrypoint, '_backend', None)
     def missing_dependency(name):
         raise ModuleNotFoundError("test missing dependency")

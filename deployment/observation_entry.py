@@ -1,4 +1,4 @@
-"""Vercel ASGI entrypoint with an explicit project path and startup diagnostics."""
+"""Observation API entrypoint retained while the public site plays the recording."""
 from importlib import import_module
 import ctypes
 import json
