@@ -30,6 +30,12 @@ Soil at the center is Cerini clay loam, 85% component. Surface horizon: 32% sand
 
 NASA POWER at this point is about a half-degree cell. Precipitation on 11 November 2026 is 0 mm. 17–18 November are fill values (`-999`) and are not measurements. This weather cannot explain a within-field anomaly.
 
+## What GrokBot reads
+
+GrokBot does not recompute the image. It reads this clip after the raster pipeline measures it: the Sentinel-2 scene time, NDVI and NDMI, the clear-pixel mask, the CDL class inside the field, the Cerini clay loam point, and the POWER series with empty days left empty. From that it tells the operator to look or to request a soil test. It does not turn organic matter or an NDVI gap into a fertilizer rate.
+
+The state restriction sits beside that note. The product catalog, not the satellite file, decides whether California or the simulated other state allows a product on the crop in the image. A missing nitrate test or a prohibited product keeps application locked.
+
 ## Do not post-train tonight
 
 Tinker can run a small LoRA fine-tune, including an official toy example of about eight chats. AGRIFORGE has no held-out agronomic labels. A fine-tune would memorize a heuristic the team can already run. Use a checked planner. Revisit Tinker only after the live satellite demo works, auth and billing already work, and a held-out set is scored for action agreement and constraint violations.

@@ -24,7 +24,9 @@ The response begins with `simulated: true` and supplies trace, phases, distance,
 
 ## Advisory and gates
 
-`GET /missions/{id}/findings` returns the observation packet plus path result and filed time. `GET /missions/{id}/advice` runs a deterministic template on that packet only. Rates are null. Missing nitrate, irrigation-water nitrate, prior applications, growth stage, and an approved crop product remain explicit.
+`GET /missions/{id}/findings` returns the observation packet plus path result and filed time. `GET /missions/{id}/advice` asks GrokBot to read that packet and write the operator note. The packet is the satellite observation: Sentinel-2 scene time, NDVI and NDMI measured from the image, the SCL mask, the CDL class, SSURGO, POWER, and the simulated path result. GrokBot treats those figures as an observation, names the missing nitrate, irrigation-water nitrate, prior applications, growth stage, and approved product, and does not return a rate. Raster rules still choose the action: `defer_observation` or `request_soil_measurement`. If `XAI_API_KEY` is unset or the call fails, the same action is filled by the local template and the response says so.
+
+The state restriction is the next gate, not a number GrokBot invents. `POST /gate` compares the crop and the selected product with the catalog. California is state `06`. The simulated other-state comparison can prohibit the same product for a different cited reason. Unknown and prohibited rows veto a human GO. The advisory and that restriction are what the operator reads together.
 
 `POST /gate` takes `mission_id`, `human_go` (default false), `product_name`, and optional `state_override: "15"`. Actual field state remains 06. Product, state and crop must exactly match a verified catalog row. Absent/unknown and prohibited rows veto; prohibition wins conflicting entries. Restricted requires human GO and displays its restrictions. The labeled Hawaiʻi comparison does not persist or overwrite the real-field gate.
 

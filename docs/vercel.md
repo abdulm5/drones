@@ -18,7 +18,7 @@ Observation, mission, and approval packets carry signed, expiring state. Request
 
 Measurement images travel with the observation response, and aerial tiles use a signed imagery identifier. Runtime state writes to `/tmp/agriforge/runtime` on Vercel. Process-local caches are only optimizations.
 
-Live Sentinel-2 and POWER requests remain the default. `AGRIFORGE_OFFLINE=1` is optional for a labeled fixture rehearsal. Set `XAI_API_KEY` on the server to let Grok write the consultant text. Without it, the raster template writes the same action.
+Live Sentinel-2 and POWER requests remain the default. `AGRIFORGE_OFFLINE=1` is optional for a labeled fixture rehearsal. Set `XAI_API_KEY` on the server, with no `VITE_` prefix, so GrokBot can read the satellite measurement packet and write the advisory. The raster rules still choose the action, and the policy catalog still vetoes a prohibited or unknown product. Without the key, the local template writes that same action.
 
 Python runtime dependencies have Linux wheels; their expanded contents total approximately 264 MiB, below Vercel's 500 MB Python bundle limit. Local production builds and cold-start workflow checks pass. An actual Vercel deployment still requires the project environment above; no hosted deployment has been performed here.
 
