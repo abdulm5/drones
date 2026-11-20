@@ -142,6 +142,8 @@
 .cesium-widget-credits { color: white; background: #0e2a1be8; border-radius: 5px; padding: 2px 7px; }
 
 .telemetry-dock { border-color: var(--af-forest); }
+.grok-mark { margin-left: auto; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--af-text-on-dark-muted); white-space: nowrap; }
+.grok-mark b { color: var(--af-new-leaf); font-weight: 700; letter-spacing: .04em; }
 .vehicle-status-icon { color: var(--af-new-leaf); background: var(--af-forest); border-color: var(--af-forest); border-radius: 8px; }
 .vehicle-status-icon.active { color: var(--af-evergreen); background: var(--af-new-leaf); }
 .vehicle-status, .telemetry-position, .mission-log { border-color: var(--af-forest); }

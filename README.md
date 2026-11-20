@@ -19,7 +19,7 @@ A vegetation anomaly tells an operator where to look, not what to spray. AGRIFOR
 
 ## How we built it
 
-Vite, React, CesiumJS, locally bundled Geist fonts, and Lucide icons power the interface. FastAPI, rasterio/GDAL, NumPy, pystac-client, Shapely, and pyproj handle observations and geometry. The browser performs no reflectance math. The planner uses explicit rules; there is no Tinker, fine-tuning, Grok Bot, or model API dependency. No Cesium Ion token is needed.
+Vite, React, CesiumJS, locally bundled Geist fonts, and Lucide icons power the interface. FastAPI, rasterio/GDAL, NumPy, pystac-client, Shapely, and pyproj handle observations and geometry. The browser performs no reflectance math. Raster rules choose the mission action. When `XAI_API_KEY` is set, Grok writes the consultant text from that findings packet and cannot change the action or propose a rate. There is no Tinker fine-tune. No Cesium Ion token is needed.
 
 See [architecture and API contracts](docs/architecture.md) and [dataset provenance](docs/datasets.md).
 
@@ -43,7 +43,7 @@ Collect actual ground measurements; verify current crop-specific product labels 
 
 ## How Grok Bot helped
 
-The supplied brief and research describe a Grok Bot/Cursor workflow. This implementation was built and checked with Codex. No Grok Bot session export or independently verifiable contribution was supplied. Add actual scrubbed session evidence before claiming that contribution in a submission.
+Grok reads the raster findings packet and writes the consultant sentences. The action, the mask, and the gates stay in the local rules. The console shows Powered by GrokBot. The xAI key stays in server environment variables.
 
 ## How to run it
 

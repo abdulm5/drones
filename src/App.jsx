@@ -321,9 +321,10 @@ export default function App() {
           <div className="findings-summary"><Check size={17} /><span>{mission.status === 'completed' ? 'Inspection complete' : 'Inspection returned early'}<small>{localDate(packet.filed_at)} PT · {selected.id}</small></span><button className="icon-button" onClick={downloadPacket} aria-label="Download findings JSON"><Download size={17} /></button></div>
           <div className="verification-grid"><Metric label="Simulated samples" value={mission.samples} /><Metric label="Path length" value={fmt(mission.distance_m/1000)} unit="km" /><Metric label="Landing battery" value={fmt(mission.battery_at_landing_pct,1)} unit="%" /><Metric label="Geofence violations" value={mission.verification?.geofence_violations ?? '—'} tone="green" /></div>
           <Source date={packet.filed_at}>Simulated AF-1 telemetry · not crop measurements</Source>
-          <div className="section-label">CONSULTANT <span>TEMPLATE</span></div>
+          <div className="section-label">CONSULTANT <span>{advice?.model_available ? 'GROK' : 'RASTER RULES'}</span></div>
           <div className="advisory-action"><ArrowDownToLine size={18} /><strong>{advice?.action.replaceAll('_',' ')}</strong></div>
-          <p className="speaker">Speaker: {advice?.speaker}. Reads only the JSON findings packet.</p>
+          <p className="speaker">Speaker: {advice?.speaker}. Raster math chose the action. {advice?.model_available ? 'Grok wrote the advisory from that packet.' : 'The packet template wrote the advisory.'}</p>
+          {advice?.grok_error && <p className="note">{advice.grok_error}</p>}
           {advice?.sentences.map((sentence,i) => <p className="advisory-sentence" key={i}><span>{sentence.layer} · {shortDate(sentence.date)}</span>{sentence.text}</p>)}
           <div className="missing-evidence"><div className="eyebrow"><TriangleAlert size={13} /> MISSING AGRONOMIC EVIDENCE</div>{packet.missing_agronomic_fields.map(item => <div key={item}><span>—</span>{item}</div>)}</div>
           <p className="note">Possible explanations: {packet.alternative_explanations.join(', ')}. None is selected as fact. No treatment rate is proposed.</p>
@@ -353,6 +354,7 @@ export default function App() {
       <div className="telemetry-values"><Metric label="ELAPSED" value={time(current?.elapsed_s)} /><Metric label="DISTANCE" value={fmt((current?.distance_m||0)/1000)} unit="km"/><Metric label="BATTERY" value={fmt(current?.battery_pct ?? 100,1)} unit="%" tone={current?.battery_pct < 40?'amber':''}/><Metric label="ALT / AGL" value={current?.altitude_agl_m || '00'} unit="m"/><Metric label="SAMPLES / SIM" value={String(current?.samples||0).padStart(3,'0')}/></div>
       <div className="telemetry-position"><span>{fmt(current?.position?.[1] ?? 36.33615,6)} N</span><span>{fmt(Math.abs(current?.position?.[0] ?? -120.108177),6)} W</span><label>PLAYBACK <select aria-label="Simulation playback speed" value={speed} onChange={e=>setSpeed(Number(e.target.value))}><option value={16}>16×</option><option value={32}>32×</option><option value={64}>64×</option></select></label></div>
       <div className="mission-log"><div className="eyebrow"><span className="status-dot"/> SYSTEM LOG</div><span>{lastEvent?.at.toISOString().slice(11,19)} <b>{lastEvent?.message}</b></span></div>
+      <div className="grok-mark">Powered by <b>GrokBot</b></div>
       <div className="timeline-track"><div style={{width:`${progress*100}%`}}/></div>
     </footer>
   </main>;

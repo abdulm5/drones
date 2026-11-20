@@ -3,6 +3,21 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_local_env():
+    path = ROOT / ".env"
+    if not path.is_file():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+load_local_env()
 DATA = Path(os.environ.get("AGRIFORGE_DATA", ROOT / "data/five_points"))
 RUNTIME = Path(os.environ.get("AGRIFORGE_RUNTIME_DIR", Path(tempfile.gettempdir()) / "agriforge/runtime"
                              if os.environ.get("VERCEL") else ROOT / "data/runtime"))
