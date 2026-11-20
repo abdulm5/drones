@@ -1,0 +1,26 @@
+[
+  {
+    "state_fips": "06",
+    "crop_cdl_code": 2,
+    "product_name": "Lorsban Advanced",
+    "authority": "California Department of Pesticide Regulation",
+    "status": "prohibited",
+    "citation": "https://www.cdpr.ca.gov/wp-content/uploads/2024/10/general_notice_append_o.pdf",
+    "label_citation": "https://www3.epa.gov/pesticides/chem_search/ppls/062719-00591-20100812.pdf",
+    "registration": "62719-591",
+    "verified_on": "2026-11-19",
+    "restriction": "Listed product: possession and use must cease by December 31, 2020. This prohibition is not an authorization for any crop or aerial application."
+  },
+  {
+    "state_fips": "15",
+    "crop_cdl_code": 2,
+    "product_name": "Lorsban Advanced",
+    "authority": "Hawaiʻi Department of Agriculture and Biosecurity, Pesticides Branch",
+    "status": "prohibited",
+    "citation": "https://dab.hawaii.gov/pi/pest/",
+    "label_citation": "https://www3.epa.gov/pesticides/chem_search/ppls/062719-00591-20100812.pdf",
+    "registration": "62719-591",
+    "verified_on": "2026-11-19",
+    "restriction": "All use and sale of chlorpyrifos banned from January 1, 2023. SIMULATED POLICY TEST; the field remains in California."
+  }
+]

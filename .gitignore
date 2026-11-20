@@ -7,6 +7,9 @@
 # Local data and outputs
 data/*
 !data/.gitkeep
+!data/policy/
+data/policy/*
+!data/policy/products.json
 outputs/
 checkpoints/
 
@@ -27,3 +30,5 @@ dist/
 .DS_Store
 .idea/
 *.log
+.coverage
+coverage/
