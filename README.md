@@ -4,7 +4,7 @@ The public homepage currently plays the supplied demo recording. Run `npm start`
 
 AGRIFORGE prototype, themed with the supplied AgriForce brand kit: evergreen/frost, Geist typography, and the sprout mark. [Vercel deployment setup](docs/vercel.md).
 
-A mission-control console for UC West Side Research and Extension Center, Five Points, California. Real satellite observations guide **simulated** drone inspections, followed by an evidence-only consultant and independent human/policy gates.
+A mission-control console for UC West Side Research and Extension Center, Five Points, California. Real satellite observations guide **simulated** drone inspections. GrokBot reads that satellite evidence and the state product restrictions, then advises the operator. A human and the policy gate both have to agree before any simulated application.
 
 ## Inspiration
 
@@ -16,12 +16,12 @@ A vegetation anomaly tells an operator where to look, not what to spray. AGRIFOR
 2. Applies reflectance scale/offset, retains SCL classes 4 and 5, and computes NDVI and NDMI. Ranks each DWR polygon by its same-field/same-CDL-class, leave-one-out 20th-percentile anomaly gap times clear fraction.
 3. Dives from a Cesium night-side globe onto aerial imagery and a selected-field measurement grid. Labels the aerial picture separately from Sentinel-2. Searches latest NAIP metadata; visibly falls back to World Imagery if tiles fail.
 4. Plans 30 m inspection lanes with concave-field connectors, an authored exclusion wedge, and an explicit depot transit corridor. Simulates AF-1 with a 25% reserve including return; AF-2 stays cold. Cloud/stale scenarios defer; low battery changes execution; exclusion changes the route.
-5. Files a downloadable findings packet. The deterministic consultant reads only that packet and requests soil measurements. It explicitly lacks root-zone nitrate, irrigation-water nitrate, prior applications, growth stage, and an approved crop product. It proposes no fertilizer rate.
-6. Requires human GO and independent policy GO before simulated application. Unknown and prohibited entries veto human GO. The API rechecks gates when application is requested.
+5. Files a downloadable findings packet from the Sentinel-2 window, the crop class, the soil point, and the weather cell. GrokBot reads that satellite observation, names what the image shows, and says which ground measurements are still missing. It does not propose a fertilizer rate.
+6. GrokBot also reads the state restriction for the proposed product. California rules and the simulated other-state comparison stay attached to the advisory. Human GO and an independent policy GO are both required before simulated application. Unknown and prohibited products veto a human GO. The API rechecks the restriction when application is requested.
 
 ## How we built it
 
-Vite, React, CesiumJS, locally bundled Geist fonts, and Lucide icons power the interface. FastAPI, rasterio/GDAL, NumPy, pystac-client, Shapely, and pyproj handle observations and geometry. The browser performs no reflectance math. Raster rules choose the mission action. When `XAI_API_KEY` is set, Grok writes the consultant text from that findings packet and cannot change the action or propose a rate. There is no Tinker fine-tune. No Cesium Ion token is needed.
+Vite, React, CesiumJS, locally bundled Geist fonts, and Lucide icons power the interface. FastAPI, rasterio/GDAL, NumPy, pystac-client, Shapely, and pyproj handle observations and geometry. The browser performs no reflectance math. The raster pipeline measures the Sentinel-2 image. GrokBot reviews that measurement together with the state restriction and writes the operator advisory. Raster rules still lock the mission action, and the policy catalog can still veto. There is no Tinker fine-tune. No Cesium Ion token is needed. The xAI key stays in `XAI_API_KEY` on the server.
 
 See [architecture and API contracts](docs/architecture.md) and [dataset provenance](docs/datasets.md).
 
@@ -45,7 +45,13 @@ Collect actual ground measurements; verify current crop-specific product labels 
 
 ## How Grok Bot helped
 
-Grok reads the raster findings packet and writes the consultant sentences. The action, the mask, and the gates stay in the local rules. The console shows Powered by GrokBot. The xAI key stays in server environment variables.
+GrokBot is the consultant on the console, marked Powered by GrokBot.
+
+It looks at the satellite observation for the field the operator opened. That is the Sentinel-2 scene over Five Points: when the image was taken, the NDVI and NDMI measured from the bands, the cloud and soil mask, and how the weak pixels sit inside that same field and crop. It treats those numbers as an observation of the image, not a diagnosis.
+
+The same review puts that satellite note next to the state restriction. GrokBot’s advice is the hold: look, or request a soil test, and do not treat the image as a prescription. The policy gate then reads the crop and the product the operator picked. California can prohibit it, and the simulated other-state rule can prohibit it for a different reason. A missing or prohibited product stays locked even when the satellite view looks uneven.
+
+GrokBot names the missing evidence, including nitrate, prior applications, and growth stage. It does not invent a spray rate. Measuring the image and enforcing the statute stay in the local pipeline. GrokBot is the reader that turns the satellite observation into the advisory the operator checks against those state rules.
 
 ## How to run it
 
