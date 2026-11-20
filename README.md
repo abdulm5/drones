@@ -1,5 +1,7 @@
 # AgriForce
 
+Winner of Most Technically Impressive at the [Berkeley x Stanford Grok Bot Hackathon](https://luma.com/c10vuu5l).
+
 The public homepage plays the supplied demo recording and links to the interactive demo at [drones-8mg2.vercel.app/console](https://drones-8mg2.vercel.app/console). Run `npm start` for the video page. `npm run console:dev` starts the local console with its Python API; open `/console.html`. The hosted console uses the repaired Python service, bundled native dependencies, and server-side Vercel Secrets.
 
 AGRIFORGE prototype, themed with the supplied AgriForce brand kit: evergreen/frost, Geist typography, and the sprout mark. [Vercel deployment setup](docs/vercel.md).
@@ -32,6 +34,8 @@ The supplied clips lost scale metadata, so reflectance is read from the accompan
 Earth Search Collection 1 uses `grid:code = MGRS-10SGF` for its MGRS predicate, rather than the brief's unavailable `s2:mgrs_tile` property.
 
 ## Accomplishments
+
+Won Most Technically Impressive at the [Berkeley x Stanford Grok Bot Hackathon](https://luma.com/c10vuu5l).
 
 The known clip reproduces mean NDVI 0.2973 (expected approximately 0.30). All 44 usable clipped DWR polygons pass four battery/exclusion combinations: 176 simulations with zero segment-geofence, exclusion, or reserve violations. The highest field completes normally and returns early under low battery. Adversarial tests also cross a concave boundary/exclusion and verify that the independent checker detects the violations.
 
