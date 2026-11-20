@@ -1,6 +1,6 @@
 # AgriForce
 
-The public homepage currently plays the supplied demo recording. Run `npm start` for the video page. The original console is retained at `/console.html`; `npm run console:dev` starts its local Python service while the hosted API repair continues. Vercel currently serves a static build and does not require Python, fixture downloads, or signing-key configuration for video playback.
+The public homepage plays the supplied demo recording and links to the interactive demo at [drones-8mg2.vercel.app/console](https://drones-8mg2.vercel.app/console). Run `npm start` for the video page. `npm run console:dev` starts the local console with its Python API; open `/console.html`. The hosted console uses the repaired Python service, bundled native dependencies, and server-side Vercel Secrets.
 
 AGRIFORGE prototype, themed with the supplied AgriForce brand kit: evergreen/frost, Geist typography, and the sprout mark. [Vercel deployment setup](docs/vercel.md).
 
