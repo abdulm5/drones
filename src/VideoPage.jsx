@@ -11,6 +11,9 @@ export default function VideoPage() {
     <div className="recording-label"><img src="/brand/logo-mark-on-dark.svg" alt="" />
       <span>AgriForce</span><small>DEMO RECORDING</small>
     </div>
+    <a className="recording-demo" href="/console" target="_blank" rel="noreferrer">
+      Try the demo <span aria-hidden="true">↗</span>
+    </a>
     {error && <p className="recording-error">The recording could not load. <a href="/demo.mp4">Open the video directly</a>.</p>}
   </main>;
 }
