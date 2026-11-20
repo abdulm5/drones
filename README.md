@@ -1,4 +1,6 @@
-# AGRIFORGE
+# AgriForce
+
+AGRIFORGE prototype, themed with the supplied AgriForce brand kit: evergreen/frost, Geist typography, and the sprout mark. [Vercel deployment setup](docs/vercel.md).
 
 A mission-control console for UC West Side Research and Extension Center, Five Points, California. Real satellite observations guide **simulated** drone inspections, followed by an evidence-only consultant and independent human/policy gates.
 
@@ -17,7 +19,7 @@ A vegetation anomaly tells an operator where to look, not what to spray. AGRIFOR
 
 ## How we built it
 
-Vite, React, CesiumJS, locally bundled IBM Plex fonts, and Lucide icons power the interface. FastAPI, rasterio/GDAL, NumPy, pystac-client, Shapely, and pyproj handle observations and geometry. The browser performs no reflectance math. The planner uses explicit rules; there is no Tinker, fine-tuning, or model API dependency. No Cesium Ion token is needed.
+Vite, React, CesiumJS, locally bundled Geist fonts, and Lucide icons power the interface. FastAPI, rasterio/GDAL, NumPy, pystac-client, Shapely, and pyproj handle observations and geometry. The browser performs no reflectance math. The planner uses explicit rules; there is no Tinker, fine-tuning, Grok Bot, or model API dependency. No Cesium Ion token is needed.
 
 See [architecture and API contracts](docs/architecture.md) and [dataset provenance](docs/datasets.md).
 

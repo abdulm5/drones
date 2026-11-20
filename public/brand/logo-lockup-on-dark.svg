@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="88" viewBox="0 0 200 44" fill="none">
+  <title>AgriForce logo lockup (for dark backgrounds)</title>
+  <rect width="200" height="44" fill="#0E2A1B"/>
+  <g transform="translate(4 4)">
+    <path d="M18 34V16" stroke="#BDE8A4" stroke-width="3" stroke-linecap="round"/>
+    <path d="M18 20C18 12 12 7 4 7C4 15 10 20 18 20Z" fill="#BDE8A4"/>
+    <path d="M18 15C18 8 23 3 31 3C31 10 26 15 18 15Z" fill="#FFFFFF"/>
+  </g>
+  <!-- Wordmark is live text: Geist Bold (700), tracking -0.02em. Install Geist or outline before shipping. Remove the <rect> for a transparent version. -->
+  <text x="54" y="33" font-family="Geist, 'Inter Tight', Inter, system-ui, sans-serif" font-size="32" font-weight="700" letter-spacing="-0.64" fill="#FFFFFF">AgriForce</text>
+</svg>

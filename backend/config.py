@@ -1,8 +1,11 @@
 import os
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = Path(os.environ.get("AGRIFORGE_DATA", ROOT / "data/five_points"))
+RUNTIME = Path(os.environ.get("AGRIFORGE_RUNTIME_DIR", Path(tempfile.gettempdir()) / "agriforge/runtime"
+                             if os.environ.get("VERCEL") else ROOT / "data/runtime"))
 BBOX = [-120.116, 36.336, -120.100, 36.348]
 CENTER = [-120.108177, 36.341988]
 DEPOT = [-120.108177, 36.33615]

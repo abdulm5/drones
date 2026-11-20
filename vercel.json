@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci",
+  "buildCommand": "python3 scripts/prepare_vercel_data.py && npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 300,
+      "includeFiles": "{backend/**,data/policy/products.json,data/five_points/**}",
+      "excludeFiles": "{.venv/**,node_modules/**,dist/**,src/**,public/**,tests/**,reports/**,research_notes/**,outputs/**,checkpoints/**,data/runtime/**,data/five_points/cdl_2025_fresno_06019.tif,data/five_points/sentinel2_20261111_clip/{blue,green,nir08}.tif}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index.py" }
+  ]
+}

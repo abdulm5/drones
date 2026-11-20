@@ -51,7 +51,7 @@ function Toggle({ label, checked, onChange, disabled, hint }) {
 }
 
 function Logo() {
-  return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 24 16 5l12 19M10 24l6-10 6 10M4 28h24" stroke="currentColor" strokeWidth="2" /><path d="M2 17h8M22 17h8" stroke="currentColor" strokeWidth="2" /></svg>;
+  return <img src="/brand/logo-mark-on-dark.svg" alt="" width="36" height="36" aria-hidden="true" />;
 }
 
 function Evidence({ packet, scenario, data }) {
@@ -185,10 +185,11 @@ export default function App() {
   async function finishMission(id) {
     const token = generation.current;
     try {
-      const [findings, advisory] = await Promise.all([api(`/missions/${id}/findings`), api(`/missions/${id}/advice`)]);
+      const session = { mission_id: id, mission_token: mission.mission_token };
+      const [findings, advisory] = await Promise.all([api('/findings', session), api('/advice', session)]);
       if (token !== generation.current) return;
       setPacket(findings); setAdvice(advisory); setTab('review');
-      const decision = await api('/gate', { mission_id: id, human_go: false, product_name: product });
+      const decision = await api('/gate', { ...session, human_go: false, product_name: product });
       if (token === generation.current) setGate(decision);
     } catch (err) { setError(err.message); }
   }
@@ -198,7 +199,7 @@ export default function App() {
     setBusy(true); setError(null); resetMission();
     const token = generation.current;
     try {
-      const result = await api('/simulate', { snapshot_id: data.snapshot_id, field_id: selected.id, ...scenario });
+      const result = await api('/simulate', { snapshot_id: data.snapshot_id, snapshot_token: data.snapshot_token, field_id: selected.id, ...scenario });
       if (token !== generation.current) return;
       setMission(result); setTab('mission');
       if (result.status === 'deferred') { log(result.reason); setError(result.reason); return; }
@@ -211,7 +212,7 @@ export default function App() {
   async function updateGate(go, proposed = product) {
     setBusy(true); setError(null);
     try {
-      const result = await api('/gate', { mission_id: mission.mission_id, human_go: go, product_name: proposed });
+      const result = await api('/gate', { mission_id: mission.mission_id, mission_token: mission.mission_token, human_go: go, product_name: proposed });
       setHumanGo(go); setGate(result); setProduct(proposed);
       if (stateOverride) await testState(true, proposed, go);
       log(`Human ${go ? 'GO' : 'NO-GO'} / policy ${result.status.toUpperCase()}`);
@@ -223,7 +224,7 @@ export default function App() {
     setStateOverride(enabled); setTestGate(null);
     if (!enabled) return;
     try {
-      const result = await api('/gate', { mission_id: mission.mission_id, human_go: accepted,
+      const result = await api('/gate', { mission_id: mission.mission_id, mission_token: mission.mission_token, human_go: accepted,
         product_name: candidate, state_override: '15' });
       setTestGate(result);
       log(`Hawaiʻi policy test / ${result.status.toUpperCase()} · field remains in California`);
@@ -233,7 +234,7 @@ export default function App() {
   async function apply() {
     setBusy(true); setError(null);
     try {
-      const result = await api('/apply', { mission_id: mission.mission_id });
+      const result = await api('/apply', { mission_id: mission.mission_id, gate_token: gate.gate_token });
       if (!result.simulated) throw new Error('Only simulated application is supported');
       setApplication(true); setProgress(0); setFlying(true); setTab('mission');
       log('SIMULATED APPLICATION / independent gates passed');
@@ -258,7 +259,7 @@ export default function App() {
       ndviVisible={ndviVisible} scenario={scenario} overviewKey={overviewKey} application={application} /></GlobeBoundary>
     <div className="top-shade" />
     <header className="topbar">
-      <a href="/" className="brand" aria-label="AGRIFORGE home"><Logo /><span>AGRI<span>FORGE</span></span><small>FIELD OPERATIONS</small></a>
+      <a href="/" className="brand" aria-label="AgriForce home"><Logo /><span>AgriForce</span><small>FIELD OPERATIONS</small></a>
       <div className="topbar-middle"><span className="slash">/</span><span>WEST SIDE REC</span><span className="state-code">CA · 06</span></div>
       <div className="topbar-right"><span className="sim-tag"><Radio size={13} /> SIMULATED VEHICLES</span><time>{utc.toISOString().slice(11, 19)} <span>UTC</span></time></div>
     </header>
@@ -326,9 +327,9 @@ export default function App() {
           {advice?.sentences.map((sentence,i) => <p className="advisory-sentence" key={i}><span>{sentence.layer} · {shortDate(sentence.date)}</span>{sentence.text}</p>)}
           <div className="missing-evidence"><div className="eyebrow"><TriangleAlert size={13} /> MISSING AGRONOMIC EVIDENCE</div>{packet.missing_agronomic_fields.map(item => <div key={item}><span>—</span>{item}</div>)}</div>
           <p className="note">Possible explanations: {packet.alternative_explanations.join(', ')}. None is selected as fact. No treatment rate is proposed.</p>
-          <div className="section-label">HUMAN GATE <span className={humanGo?'green-text':'red-text'}>{humanGo?'GO':'NO-GO'}</span></div>
+          <section className="human-gate" aria-label="Human approval"><div className="section-label">HUMAN GATE <span className={humanGo?'green-text':'red-text'}>{humanGo?'GO':'NO-GO'}</span></div>
           <p className="note">GO accepts the inspection record. Application requires an independent policy GO.</p>
-          <div className="human-buttons"><button className={!humanGo?'selected-no':''} disabled={busy || flying} onClick={() => updateGate(false)}><X size={16} />NO-GO</button><button className={humanGo?'selected-go':''} disabled={busy || flying} onClick={() => updateGate(true)}><Check size={16} />GO / accept record</button></div>
+          <div className="human-buttons"><button className={!humanGo?'selected-no':''} disabled={busy || flying} onClick={() => updateGate(false)}><X size={16} />NO-GO</button><button className={humanGo?'selected-go':''} disabled={busy || flying} onClick={() => updateGate(true)}><Check size={16} />GO / accept record</button></div></section>
           <div className="section-label">STATE POLICY GATE <span>CA · 06</span></div>
           <label className="select-label" htmlFor="product">Proposed product</label><div className="select-wrap"><select id="product" value={product} disabled={busy || flying} onChange={e => updateGate(humanGo,e.target.value)}><option value="">No approved product</option>{catalogProducts.map(p=><option key={p}>{p}</option>)}</select><ChevronDown size={15} /></div>
           {gate && <div className={`policy-result ${gate.policy_go ? 'go' : 'no-go'}`}><div><ShieldCheck size={17} /><b>{gate.policy_go?'GO':'NO-GO'} / {gate.status.toUpperCase()}</b></div><p>{gate.reason}</p>{gate.mission_veto && <p>{gate.mission_veto}</p>}{gate.row && <><small>{gate.row.authority}</small><p>{gate.row.restriction}</p><a href={gate.row.citation} target="_blank" rel="noreferrer">Official state authority <ExternalLink size={12} /></a></>}</div>}

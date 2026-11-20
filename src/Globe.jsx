@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import * as C from 'cesium';
 
-const amber = C.Color.fromCssColorString('#E6A15C');
-const green = C.Color.fromCssColorString('#7DCEA0');
-const red = C.Color.fromCssColorString('#E06B5C');
+const amber = C.Color.fromCssColorString('#F2B84B');
+const green = C.Color.fromCssColorString('#BDE8A4');
+const red = C.Color.fromCssColorString('#F0705A');
 const center = [-120.108177, 36.341988];
 const origin = [-120.108177, 36.33615];
 const color = hex => C.Color.fromCssColorString(hex);
@@ -77,8 +77,8 @@ export default function Globe({ data, selected, onSelect, mission, progress, fly
         contextOptions: { webgl: { alpha: false } },
       });
       viewerRef.current = viewer;
-      viewer.scene.backgroundColor = color('#07080A');
-      viewer.scene.globe.baseColor = color('#18252B');
+      viewer.scene.backgroundColor = color('#0E2A1B');
+      viewer.scene.globe.baseColor = color('#0E2A1B');
       viewer.scene.globe.showGroundAtmosphere = true;
       viewer.scene.globe.enableLighting = false;
       viewer.scene.fog.enabled = false;
@@ -110,9 +110,9 @@ export default function Globe({ data, selected, onSelect, mission, progress, fly
       viewer.entities.add({ id: 'site-reticle', position: C.Cartesian3.fromDegrees(...center, 500),
         point: { pixelSize: 11, color: amber, outlineColor: amber.withAlpha(.25), outlineWidth: 14,
           disableDepthTestDistance: Number.POSITIVE_INFINITY },
-        label: { text: 'FIVE POINTS / CA', font: '12px IBM Plex Mono', fillColor: amber,
+        label: { text: 'FIVE POINTS / CA', font: '12px Geist Mono', fillColor: amber,
           pixelOffset: new C.Cartesian2(20, -3), horizontalOrigin: C.HorizontalOrigin.LEFT,
-          showBackground: true, backgroundColor: color('#07080A').withAlpha(.7),
+          showBackground: true, backgroundColor: color('#0E2A1B').withAlpha(.7),
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
           distanceDisplayCondition: new C.DistanceDisplayCondition(18000, 30_000_000) } });
       handler = new C.ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -140,11 +140,11 @@ export default function Globe({ data, selected, onSelect, mission, progress, fly
       viewer.entities.add({ id: `pin-${field.id}`, properties: { fieldId: field.id },
         position: C.Cartesian3.fromDegrees(...field.center, 6),
         point: { pixelSize: field.id === selected?.id ? 12 : 8,
-          color: hollow ? color('#101318') : amber, outlineColor: amber, outlineWidth: 2,
+          color: hollow ? color('#1B4D30') : amber, outlineColor: amber, outlineWidth: 2,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
           distanceDisplayCondition: new C.DistanceDisplayCondition(0, 600_000) },
-        label: { text: String(field.rank).padStart(2, '0'), font: '12px IBM Plex Mono',
-          fillColor: amber, showBackground: true, backgroundColor: color('#07080A').withAlpha(.8),
+        label: { text: String(field.rank).padStart(2, '0'), font: '12px Geist Mono',
+          fillColor: amber, showBackground: true, backgroundColor: color('#0E2A1B').withAlpha(.8),
           pixelOffset: new C.Cartesian2(14, -13), disableDepthTestDistance: Number.POSITIVE_INFINITY,
           distanceDisplayCondition: new C.DistanceDisplayCondition(0, 12000) } });
       outline(viewer, `boundary-${field.id}`, field.geometry, amber.withAlpha(field.id === selected?.id ? .95 : .25), field.id === selected?.id ? 2 : 1);
@@ -173,10 +173,10 @@ export default function Globe({ data, selected, onSelect, mission, progress, fly
     fade();
     viewer.entities.removeById('depot');
     viewer.entities.add({ id: 'depot', position: C.Cartesian3.fromDegrees(...origin, 8),
-      point: { pixelSize: 10, color: green, outlineWidth: 3, outlineColor: color('#07080A'), disableDepthTestDistance: Infinity },
-      label: { text: 'DEPOT / AUTHORED', font: '12px IBM Plex Mono', fillColor: green,
+      point: { pixelSize: 10, color: green, outlineWidth: 3, outlineColor: color('#0E2A1B'), disableDepthTestDistance: Infinity },
+      label: { text: 'DEPOT / AUTHORED', font: '12px Geist Mono', fillColor: green,
         pixelOffset: new C.Cartesian2(16, 0), horizontalOrigin: C.HorizontalOrigin.LEFT,
-        disableDepthTestDistance: Infinity, showBackground: true, backgroundColor: color('#07080A').withAlpha(.8) } });
+        disableDepthTestDistance: Infinity, showBackground: true, backgroundColor: color('#0E2A1B').withAlpha(.8) } });
     return () => { flightRef.current++; };
   }, [selected?.id, data?.snapshot_id]);
 
@@ -186,7 +186,9 @@ export default function Globe({ data, selected, onSelect, mission, progress, fly
     let cancelled = false;
     if (imageryRef.current.ndvi) viewer.imageryLayers.remove(imageryRef.current.ndvi, true);
     imageryRef.current.ndvi = null;
-    C.SingleTileImageryProvider.fromUrl(data.ndvi_url + (selected ? `&field_id=${selected.id}` : ''), { rectangle: C.Rectangle.fromDegrees(...data.ndvi_bounds) })
+    const measurement = selected && data.ndvi_images?.[selected.id] || data.ndvi_url;
+    const measurementUrl = measurement.startsWith('data:') ? measurement : measurement + (selected ? `&field_id=${selected.id}` : '');
+    C.SingleTileImageryProvider.fromUrl(measurementUrl, { rectangle: C.Rectangle.fromDegrees(...data.ndvi_bounds) })
       .then(provider => {
         if (cancelled || viewer.isDestroyed()) return;
         const layer = viewer.imageryLayers.addImageryProvider(provider);
@@ -255,10 +257,10 @@ export default function Globe({ data, selected, onSelect, mission, progress, fly
         material: new C.PolylineDashMaterialProperty({ color: red, dashLength: 7 }), width: 3 } }));
     const first = mission.trace[0];
     viewer.entities.add({ id: 'drone', position: C.Cartesian3.fromDegrees(...first.position, 40),
-      point: { pixelSize: 10, color: green, outlineColor: color('#07080A'), outlineWidth: 3, disableDepthTestDistance: Infinity },
-      label: { text: application ? 'AF-1 / SIMULATED APPLICATION' : 'AF-1 / SIM', font: '12px IBM Plex Mono', fillColor: green,
+      point: { pixelSize: 10, color: green, outlineColor: color('#0E2A1B'), outlineWidth: 3, disableDepthTestDistance: Infinity },
+      label: { text: application ? 'AF-1 / SIMULATED APPLICATION' : 'AF-1 / SIM', font: '12px Geist Mono', fillColor: green,
         pixelOffset: new C.Cartesian2(15, -10), horizontalOrigin: C.HorizontalOrigin.LEFT, disableDepthTestDistance: Infinity,
-        showBackground: true, backgroundColor: color('#07080A').withAlpha(.9) } });
+        showBackground: true, backgroundColor: color('#0E2A1B').withAlpha(.9) } });
     viewer.entities.add({ id: 'track', polyline: { positions: C.Cartesian3.fromDegreesArrayHeights(mission.path.slice(0, 2).flatMap(p => [...p, 40])),
       material: green, width: 2.5 } });
     const all = [...mission.path, ...ring(selected.geometry)];

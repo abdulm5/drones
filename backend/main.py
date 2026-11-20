@@ -1,5 +1,6 @@
 """Run with: .venv/bin/uvicorn backend.main:app --port 8000"""
 from copy import deepcopy
+import base64
 from datetime import datetime, timezone
 import json
 import logging
@@ -14,14 +15,15 @@ import httpx
 
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
-from .config import BBOX, CENTER, DEPOT, ROOT
+from .config import BBOX, CENTER, DEPOT, ROOT, RUNTIME
 from .consultant import advise
 from .fusion import fuse
 from .policy import CATALOG, check_policy
 from .simulation import simulate
+from .sessions import MAX_TOKEN_SIZE, SessionError, seal, signing_key, unseal
 
 logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="AGRIFORGE", version="0.1.0")
@@ -34,12 +36,18 @@ missions = {}
 tile_cache = {}
 
 
+@app.exception_handler(SessionError)
+def session_error(request, error):
+    return JSONResponse(status_code=error.status_code, content={"detail": str(error)})
+
+
 class FuseRequest(BaseModel):
     refresh: bool = False
 
 
 class SimulateRequest(BaseModel):
     snapshot_id: str
+    snapshot_token: str | None = Field(default=None, max_length=MAX_TOKEN_SIZE)
     field_id: str
     low_battery: bool = False
     cloud: bool = False
@@ -49,6 +57,7 @@ class SimulateRequest(BaseModel):
 
 class GateRequest(BaseModel):
     mission_id: str
+    mission_token: str | None = Field(default=None, max_length=MAX_TOKEN_SIZE)
     human_go: bool = False
     product_name: str = Field(default="", max_length=150)
     state_override: Literal["15"] | None = None
@@ -56,9 +65,20 @@ class GateRequest(BaseModel):
 
 class ApplyRequest(BaseModel):
     mission_id: str
+    gate_token: str | None = Field(default=None, max_length=MAX_TOKEN_SIZE)
 
 
-def mission_or_404(mission_id):
+class MissionRequest(BaseModel):
+    mission_id: str
+    mission_token: str = Field(max_length=MAX_TOKEN_SIZE)
+
+
+def mission_or_404(mission_id, token=None):
+    if token:
+        decoded = unseal(token, "mission")
+        if decoded.get("mission_id") != mission_id:
+            raise HTTPException(403, "Mission does not match its signed session")
+        return {"result": decoded["result"], "packet": decoded["packet"], "gate": None}
     if mission_id not in missions:
         raise HTTPException(404, "Mission not found; dispatch an inspection first")
     return missions[mission_id]
@@ -72,6 +92,7 @@ def health():
 @app.post("/fuse")
 def fused(request: FuseRequest = FuseRequest()):
     global snapshot, snapshot_at
+    signing_key()  # Fail clearly before network work if the hosted key is missing.
     with fusion_lock:
         if snapshot is None or request.refresh or monotonic() - snapshot_at > 300:
             try:
@@ -81,15 +102,22 @@ def fused(request: FuseRequest = FuseRequest()):
             except ValueError as exc:
                 raise HTTPException(422, str(exc)) from exc
             result["snapshot_id"] = str(uuid4())
-            if result["aerial"]["mode"] == "NAIP":
-                result["aerial"]["url"] = f"/api/aerial/tiles/{{z}}/{{x}}/{{y}}.png?snapshot_id={result['snapshot_id']}"
             snapshot, snapshot_at = result, monotonic()
-        return {k: v for k, v in snapshot.items() if k not in ["ndvi_png", "ndvi_fields"]} | {
+        aerial = dict(snapshot["aerial"])
+        if aerial["mode"] == "NAIP":
+            image_token = seal("aerial", {"item_id": aerial["item_id"]})
+            aerial["url"] = f"/api/aerial/tiles/{{z}}/{{x}}/{{y}}.png?image_token={image_token}"
+        def image_url(content):
+            return "data:image/png;base64," + base64.b64encode(content).decode("ascii")
+        return {k: v for k, v in snapshot.items() if k not in ["ndvi_png", "ndvi_fields", "aerial"]} | {
+            "aerial": aerial,
+            "snapshot_token": seal("snapshot", {"snapshot_id": snapshot["snapshot_id"], "fields": snapshot["fields"]}),
+            "ndvi_images": {key: image_url(value) for key, value in snapshot["ndvi_fields"].items()},
             "site": {"name": "UC West Side Research & Extension Center", "place": "Five Points, Fresno County, CA",
                      "center": CENTER, "bbox": BBOX, "state_fips": "06", "depot": DEPOT,
                      "depot_note": "AUTHORED demo depot; not surveyed"},
             "policy_catalog": json.loads(CATALOG.read_text()),
-            "ndvi_url": f"/api/ndvi.png?snapshot_id={snapshot['snapshot_id']}"}
+            "ndvi_url": image_url(snapshot["ndvi_png"])}
 
 
 @app.get("/ndvi.png")
@@ -104,8 +132,12 @@ def ndvi(snapshot_id: str, field_id: str | None = None):
 
 @app.get("/api/aerial/tiles/{z}/{x}/{y}.png")
 @app.get("/aerial/tiles/{z}/{x}/{y}.png")
-def aerial_tile(z: int, x: int, y: int, snapshot_id: str):
-    if snapshot is None or snapshot["snapshot_id"] != snapshot_id or snapshot["aerial"]["mode"] != "NAIP":
+def aerial_tile(z: int, x: int, y: int, snapshot_id: str | None = None, image_token: str | None = None):
+    if image_token:
+        item_id = unseal(image_token, "aerial")["item_id"]
+    elif snapshot is not None and snapshot["snapshot_id"] == snapshot_id and snapshot["aerial"]["mode"] == "NAIP":
+        item_id = snapshot["aerial"]["item_id"]
+    else:
         raise HTTPException(409, "NAIP observation changed or is unavailable")
     if not 13 <= z <= 20 or not (0 <= x < 2**z and 0 <= y < 2**z):
         raise HTTPException(422, "NAIP tiles are limited to the demo region at zoom 13–20")
@@ -115,9 +147,9 @@ def aerial_tile(z: int, x: int, y: int, snapshot_id: str):
     east, north = tile(BBOX[2], BBOX[3])
     if x < math.floor(west) or x > math.floor(east) or y < math.floor(north) or y > math.floor(south):
         raise HTTPException(404, "Tile outside Five Points")
-    key = (snapshot_id, z, x, y)
+    key = (item_id, z, x, y)
     if key not in tile_cache:
-        params = [("collection", "naip"), ("item", snapshot["aerial"]["item_id"]),
+        params = [("collection", "naip"), ("item", item_id),
                   ("assets", "image"), ("bidx", "1"), ("bidx", "2"), ("bidx", "3"), ("rescale", "0,255")]
         try:
             response = httpx.get(f"https://planetarycomputer.microsoft.com/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}.png",
@@ -135,9 +167,10 @@ def aerial_tile(z: int, x: int, y: int, snapshot_id: str):
 
 @app.post("/simulate")
 def simulation(request: SimulateRequest):
-    if snapshot is None or request.snapshot_id != snapshot["snapshot_id"]:
+    observation = unseal(request.snapshot_token, "snapshot") if request.snapshot_token else snapshot
+    if observation is None or request.snapshot_id != observation["snapshot_id"]:
         raise HTTPException(409, "Observation changed; refresh before dispatch")
-    field = next((f for f in snapshot["fields"] if f["id"] == request.field_id), None)
+    field = next((f for f in observation["fields"] if f["id"] == request.field_id), None)
     if field is None:
         raise HTTPException(404, "Unknown DWR polygon")
     try:
@@ -154,7 +187,7 @@ def simulation(request: SimulateRequest):
     if result["status"] == "deferred":
         packet["action"] = "defer_observation"
     missions[mission_id] = {"result": result, "packet": packet, "gate": None}
-    runtime = ROOT / "data/runtime"
+    runtime = RUNTIME
     runtime.mkdir(parents=True, exist_ok=True)
     last = result["trace"][-1] if result["trace"] else {"position": DEPOT, "battery_pct": 100,
             "altitude_agl_m": 0, "ground_speed_mps": 0, "payload_g": 0}
@@ -164,7 +197,7 @@ def simulation(request: SimulateRequest):
     (runtime / "AF-1.json").write_text(json.dumps(state) + "\n")
     if len(missions) > 100:
         del missions[next(iter(missions))]
-    return result
+    return result | {"mission_token": seal("mission", {"mission_id": mission_id, "result": result, "packet": packet})}
 
 
 @app.get("/missions/{mission_id}/findings")
@@ -177,29 +210,56 @@ def advice(mission_id: str):
     return advise(mission_or_404(mission_id)["packet"])
 
 
-@app.post("/gate")
-def gate(request: GateRequest):
-    mission = mission_or_404(request.mission_id)
+@app.post("/api/findings")
+@app.post("/findings")
+def signed_findings(request: MissionRequest):
+    return mission_or_404(request.mission_id, request.mission_token)["packet"]
+
+
+@app.post("/api/advice")
+@app.post("/advice")
+def signed_advice(request: MissionRequest):
+    return advise(mission_or_404(request.mission_id, request.mission_token)["packet"])
+
+
+def evaluate_gate(mission, human_go, product_name, state_override=None):
     packet = mission["packet"]
-    state = request.state_override or packet["state_fips"]
-    result = check_policy(state, packet["cdl"]["code"], request.product_name, request.human_go)
-    result["simulated_policy_test"] = request.state_override is not None
+    state = state_override or packet["state_fips"]
+    result = check_policy(state, packet["cdl"]["code"], product_name, human_go)
+    result["simulated_policy_test"] = state_override is not None
     result["field_state_fips"] = packet["state_fips"]
     if mission["result"]["status"] != "completed":
         result["application_unlocked"] = False
         result["mission_veto"] = "A complete inspection is required before application playback."
+    return result
+
+
+@app.post("/gate")
+def gate(request: GateRequest):
+    mission = mission_or_404(request.mission_id, request.mission_token)
+    result = evaluate_gate(mission, request.human_go, request.product_name, request.state_override)
     # Always recheck at application time; never trust a browser unlock flag.
     if request.state_override is None:
         mission["gate"] = request.model_dump()
+        result["gate_token"] = seal("gate", {"mission_id": request.mission_id,
+            "mission": {"result": mission["result"], "packet": mission["packet"]},
+            "human_go": request.human_go, "product_name": request.product_name})
     return result
 
 
 @app.post("/apply")
 def application(request: ApplyRequest):
-    mission = mission_or_404(request.mission_id)
-    if not mission["gate"]:
-        raise HTTPException(403, "Human and policy gates have not passed")
-    result = gate(GateRequest(**mission["gate"]))
+    if request.gate_token:
+        decision = unseal(request.gate_token, "gate")
+        if decision.get("mission_id") != request.mission_id:
+            raise HTTPException(403, "Approval does not match this mission")
+        mission = decision["mission"]
+        result = evaluate_gate(mission, decision["human_go"], decision["product_name"])
+    else:
+        mission = mission_or_404(request.mission_id)
+        if not mission["gate"]:
+            raise HTTPException(403, "Human and policy gates have not passed")
+        result = gate(GateRequest(**mission["gate"]))
     if not result["application_unlocked"]:
         raise HTTPException(403, result.get("mission_veto", result["reason"]))
     return {"simulated": True, "label": "SIMULATED APPLICATION", "mission_id": request.mission_id,

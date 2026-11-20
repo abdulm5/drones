@@ -1,0 +1,40 @@
+/* AgriForce brand tokens. Mood: alpine (snow x evergreen). Source: pitch deck. */
+:root {
+  /* Core palette */
+  --af-evergreen: #0E2A1B; /* dark ground, primary text on light */
+  --af-forest:    #1B4D30; /* panels / raised surfaces on dark */
+  --af-fern:      #2F7D4F; /* accent on light: links, labels, icons, primary button */
+  --af-new-leaf:  #BDE8A4; /* accent on dark; also a full-bleed highlight ground */
+  --af-frost:     #EEF6EA; /* pale surface, app background on light */
+  --af-snow:      #FFFFFF; /* cards, base ground */
+
+  /* Supporting neutrals (green-tinted) */
+  --af-text-on-dark:        #FFFFFF;
+  --af-text-on-dark-soft:   #DCEBDD; /* body copy on evergreen */
+  --af-text-on-dark-muted:  #9CC2A8; /* captions, sources on evergreen */
+  --af-text-on-light:       #0E2A1B;
+  --af-text-on-light-muted: #4E6B58; /* captions, sources on white / frost */
+  --af-divider-on-light:    #DDEBD6;
+  --af-divider-on-dark:     #1B4D30;
+
+  /* Status: SUGGESTED, not used in the deck. Light-ground and dark-ground variants. */
+  --af-warning-on-dark:  #F2B84B;
+  --af-warning-on-light: #8A5A00;
+  --af-danger-on-dark:   #F0705A;
+  --af-danger-on-light:  #B3261E;
+
+  /* Type */
+  --af-font-sans: "Geist", "Inter Tight", Inter, system-ui, sans-serif;
+  --af-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --af-weight-body: 400;
+  --af-weight-strong: 600;
+  --af-weight-title: 700;
+  --af-weight-display: 800;
+  --af-tracking-display: -0.04em; /* large headlines */
+  --af-tracking-title: -0.02em;
+  --af-tracking-label: 0.08em;    /* mono caps labels */
+
+  /* Shape */
+  --af-radius-card: 20px;
+  --af-radius-panel: 28px;
+}

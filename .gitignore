@@ -32,3 +32,4 @@ dist/
 *.log
 .coverage
 coverage/
+.vercel/
