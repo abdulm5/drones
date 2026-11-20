@@ -86,7 +86,8 @@ def mission_or_404(mission_id, token=None):
 
 @app.get("/health")
 def health():
-    return {"ok": True, "service": "AGRIFORGE", "simulated": True}
+    return {"ok": True, "service": "AGRIFORGE", "simulated": True,
+            "commit": os.environ.get("VERCEL_GIT_COMMIT_SHA")}
 
 
 @app.post("/fuse")
