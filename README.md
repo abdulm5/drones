@@ -4,13 +4,13 @@ Winner of Most Technically Impressive at the [Berkeley x Stanford Grok Bot Hacka
 
 The public homepage plays the supplied demo recording and links to the interactive demo at [drones-8mg2.vercel.app/console](https://drones-8mg2.vercel.app/console). Run `npm start` for the video page. `npm run console:dev` starts the local console with its Python API; open `/console.html`. The hosted console uses the repaired Python service, bundled native dependencies, and server-side Vercel Secrets.
 
-AGRIFORGE prototype, themed with the supplied AgriForce brand kit: evergreen/frost, Geist typography, and the sprout mark. [Vercel deployment setup](docs/vercel.md).
+AgriForce prototype, themed with the supplied brand kit: evergreen/frost, Geist typography, and the sprout mark. [Vercel deployment setup](docs/vercel.md).
 
 A mission-control console for UC West Side Research and Extension Center, Five Points, California. Real satellite observations guide **simulated** drone inspections. GrokBot reads that satellite evidence and the state product restrictions, then advises the operator. A human and the policy gate both have to agree before any simulated application.
 
 ## Inspiration
 
-A vegetation anomaly tells an operator where to look, not what to spray. AGRIFORGE makes evidence, missing ground measurements, mission constraints, and approval decisions visible in one workflow.
+A vegetation anomaly tells an operator where to look, not what to spray. AgriForce makes evidence, missing ground measurements, mission constraints, and approval decisions visible in one workflow.
 
 ## What it does
 

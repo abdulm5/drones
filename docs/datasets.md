@@ -1,6 +1,6 @@
 # Five Points datasets
 
-Pulled on 19 November 2026 for the AGRIFORGE demo. Files are in `data/five_points/` and are gitignored.
+Pulled on 19 November 2026 for the AgriForce demo. Files are in `data/five_points/` and are gitignored.
 
 The demo area is the UC West Side Research and Extension Center at Five Points, Fresno County. Bounding box: `-120.116, 36.336, -120.100, 36.348`. Center: `36.341988, -120.108177`.
 
@@ -38,7 +38,7 @@ The state restriction sits beside that note. The product catalog, not the satell
 
 ## Do not post-train tonight
 
-Tinker can run a small LoRA fine-tune, including an official toy example of about eight chats. AGRIFORGE has no held-out agronomic labels. A fine-tune would memorize a heuristic the team can already run. Use a checked planner. Revisit Tinker only after the live satellite demo works, auth and billing already work, and a held-out set is scored for action agreement and constraint violations.
+Tinker can run a small LoRA fine-tune, including an official toy example of about eight chats. AgriForce has no held-out agronomic labels. A fine-tune would memorize a heuristic the team can already run. Use a checked planner. Revisit Tinker only after the live satellite demo works, auth and billing already work, and a held-out set is scored for action agreement and constraint violations.
 
 ## Sources
 

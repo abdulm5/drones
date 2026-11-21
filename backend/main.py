@@ -26,7 +26,7 @@ from .simulation import simulate
 from .sessions import MAX_TOKEN_SIZE, SessionError, seal, signing_key, unseal
 
 logging.basicConfig(level=logging.INFO)
-app = FastAPI(title="AGRIFORGE", version="0.1.0")
+app = FastAPI(title="AgriForce", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
                    allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
 snapshot = None
@@ -86,7 +86,7 @@ def mission_or_404(mission_id, token=None):
 
 @app.get("/health")
 def health():
-    return {"ok": True, "service": "AGRIFORGE", "simulated": True,
+    return {"ok": True, "service": "AgriForce", "simulated": True,
             "commit": os.environ.get("VERCEL_GIT_COMMIT_SHA")}
 
 

@@ -1,1 +1,1 @@
-"""AGRIFORGE observation fusion and simulated mission control."""
+"""AgriForce observation fusion and simulated mission control."""
